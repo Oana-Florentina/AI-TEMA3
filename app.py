@@ -27,7 +27,7 @@ class GameState:
             for j in range(3):
                 if GameState.magic_square[i][j] == move:
                     next_state.board[i][j] = self.player_to_move
-                    
+
         return next_state
 
 class Validator:
@@ -47,6 +47,11 @@ class Validator:
         
         return True, Player.NO_PLAYER
     
-    
-        
+    def is_valid_move(state, move):
+        for i in range(3):
+            for j in range(3):
+                if GameState.magic_square[i][j] == move:
+                    if state.board[i][j] != None:
+                        return False
+        return True
             
