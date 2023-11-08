@@ -29,6 +29,12 @@ class GameState:
                     next_state.board[i][j] = self.player_to_move
 
         return next_state
+    
+    def minmax(state, depth, max_depth):
+        if Validator.is_final_state(state) or depth == max_depth:
+            return Heuristic.get_score(state), state
+        #TODO
+        
 
 class Validator:
     def is_final_state(state):
@@ -57,7 +63,7 @@ class Validator:
 
 class Heuristic:
     @staticmethod
-    def get_score(state, player):
+    def get_score(state):
         # Define the scoring values
         SCORES = {
             '3-in-a-line': 100,
@@ -72,26 +78,28 @@ class Heuristic:
         for i in range(3):
             # Check rows
             row = state.board[i, :]
-            total_score += Heuristic.evaluate_line(row, player, SCORES)
+            total_score += Heuristic.evaluate_line(row, SCORES)
 
             # Check columns
             col = state.board[:, i]
-            total_score += Heuristic.evaluate_line(col, player, SCORES)
+            total_score += Heuristic.evaluate_line(col, SCORES)
 
         # Check diagonals
         diagonal1 = np.diagonal(state.board)
         diagonal2 = np.diagonal(np.fliplr(state.board))
-        total_score += Heuristic.evaluate_line(diagonal1, player, SCORES)
-        total_score += Heuristic.evaluate_line(diagonal2, player, SCORES)
+        total_score += Heuristic.evaluate_line(diagonal1, SCORES)
+        print(total_score)
+        total_score += Heuristic.evaluate_line(diagonal2, SCORES)
+        print(total_score)
 
         return total_score
 
     @staticmethod
-    def evaluate_line(line, player, scores):
+    def evaluate_line(line, scores):
         # Evaluate a single line
-        num_player = line.tolist().count(player)
-        num_empty = line.tolist().count(Player.NO_PLAYER)
-        num_opponent = 3 - num_player - num_empty
+        num_player = line.tolist().count(Player.PLAYER_1) #player 1
+        num_empty = line.tolist().count(None)
+        num_opponent = 3 - num_player - num_empty #player 2
 
         if num_player == 3:
             return scores['3-in-a-line']
@@ -108,3 +116,14 @@ class Heuristic:
         else:
             return 0
 
+# Create a GameState object with a custom board configuration
+game_state = GameState()
+game_state.board = np.array([
+    ['A', None, 'B'],
+    [None, None, 'B'],
+    ['A', None, None]
+])
+
+# Calculate the heuristic score
+heuristic_score = Heuristic.get_score(game_state)
+print(f"Heuristic score: {heuristic_score}")
