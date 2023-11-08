@@ -30,11 +30,20 @@ class GameState:
 
         return next_state
     
-    def minmax(state, depth, max_depth):
+    def minmax(self, state, depth, max_depth):
         if Validator.is_final_state(state) or depth == max_depth:
             return Heuristic.get_score(state), state
-        #TODO
         
+        next = []
+        for move in range(1, 10):
+            if Validator.is_valid_move(state, move):
+                next_state = self.get_next_state(move)
+                next.append(self.minmax(next_state, depth + 1, max_depth))
+
+        f = lambda list: min([score for score, state in list])
+        if state.player_to_move == Player.PLAYER_1:
+            f = lambda list: max([score for score, state in list])
+        return f(next)
 
 class Validator:
     def is_final_state(state):
@@ -88,9 +97,7 @@ class Heuristic:
         diagonal1 = np.diagonal(state.board)
         diagonal2 = np.diagonal(np.fliplr(state.board))
         total_score += Heuristic.evaluate_line(diagonal1, SCORES)
-        print(total_score)
         total_score += Heuristic.evaluate_line(diagonal2, SCORES)
-        print(total_score)
 
         return total_score
 
