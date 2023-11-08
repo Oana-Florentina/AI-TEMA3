@@ -54,4 +54,57 @@ class Validator:
                     if state.board[i][j] != None:
                         return False
         return True
-            
+
+class Heuristic:
+    @staticmethod
+    def get_score(state, player):
+        # Define the scoring values
+        SCORES = {
+            '3-in-a-line': 100,
+            '2-in-a-line': 10,
+            '1-in-a-line': 1,
+        }
+
+        # Initialize the total score
+        total_score = 0
+
+        # Check each of the 8 lines (3 rows, 3 columns, and 2 diagonals)
+        for i in range(3):
+            # Check rows
+            row = state.board[i, :]
+            total_score += Heuristic.evaluate_line(row, player, SCORES)
+
+            # Check columns
+            col = state.board[:, i]
+            total_score += Heuristic.evaluate_line(col, player, SCORES)
+
+        # Check diagonals
+        diagonal1 = np.diagonal(state.board)
+        diagonal2 = np.diagonal(np.fliplr(state.board))
+        total_score += Heuristic.evaluate_line(diagonal1, player, SCORES)
+        total_score += Heuristic.evaluate_line(diagonal2, player, SCORES)
+
+        return total_score
+
+    @staticmethod
+    def evaluate_line(line, player, scores):
+        # Evaluate a single line
+        num_player = line.tolist().count(player)
+        num_empty = line.tolist().count(Player.NO_PLAYER)
+        num_opponent = 3 - num_player - num_empty
+
+        if num_player == 3:
+            return scores['3-in-a-line']
+        elif num_player == 2 and num_empty == 1:
+            return scores['2-in-a-line']
+        elif num_player == 1 and num_empty == 2:
+            return scores['1-in-a-line']
+        elif num_opponent == 3:
+            return -scores['3-in-a-line']
+        elif num_opponent == 2 and num_empty == 1:
+            return -scores['2-in-a-line']
+        elif num_opponent == 1 and num_empty == 2:
+            return -scores['1-in-a-line']
+        else:
+            return 0
+
