@@ -29,39 +29,56 @@ class GameState:
                     next_state.board[i][j] = self.player_to_move
 
         return next_state
-    
-    def minmax(self, state, depth, max_depth):
+
+    def minmax(state, move, depth, max_depth):
+        print(f"depth: {depth}, {np.ndarray.tolist(state.board)}, {state.player_to_move}")
         if Validator.is_final_state(state) or depth == max_depth:
-            return Heuristic.get_score(state), state
+            return Heuristic.get_score(state), move
         
         next = []
-        for move in range(1, 10):
-            if Validator.is_valid_move(state, move):
-                next_state = self.get_next_state(move)
-                next.append(self.minmax(next_state, depth + 1, max_depth))
+        for next_move in range(1, 10):
+            if Validator.is_valid_move(state, next_move):
+                next_state = state.get_next_state(next_move)
+                next.append(GameState.minmax(next_state, next_move, depth + 1, max_depth))
 
-        f = lambda list: min([score for score, state in list])
+        f = lambda list: min(next, key=lambda x: x[0])
         if state.player_to_move == Player.PLAYER_1:
-            f = lambda list: max([score for score, state in list])
+            f = lambda list: max(next, key=lambda x: x[0])
         return f(next)
 
 class Validator:
-    def is_final_state(state):
+    def check_final_state(state):
+        for i in range(3):
+            #pe linie
+            if all(cell == Player.PLAYER_1 for cell in state.board[i]):
+                return True, Player.PLAYER_1
+            if all(cell == Player.PLAYER_2 for cell in state.board[i]):
+                return True, Player.PLAYER_2
+            #pe coloana
+            if all(cell == Player.PLAYER_1 for cell in state.board[:,i]):
+                return True, Player.PLAYER_1
+            if all(cell == Player.PLAYER_2 for cell in state.board[:,i]):
+                return True, Player.PLAYER_2
+            
+        #diag principala
+        if all(state.board[i][i] == Player.PLAYER_1 for i in range(3)):
+            return True, Player.PLAYER_1
+        if all(state.board[i][i] == Player.PLAYER_2 for  i in range(3)):
+            return True, Player.PLAYER_2
+
+        #diag secundara
+        if all(state.board[i][2-i] == Player.PLAYER_1 for i in range(3)):
+            return True, Player.PLAYER_1
+        if all(state.board[i][2-i] == Player.PLAYER_2 for i in range(3)):
+            return True, Player.PLAYER_2
+            
         if None in state.board:
             return False, None
-        for i in range(3):
-            if all(cell == Player.PLAYER_1 or cell == Player.PLAYER_2 for cell in state.board[i]):
-                return True, state.board[i][0]
-            if all(cell == Player.PLAYER_1 or cell == Player.PLAYER_2 for cell in state.board[:,i:i+1]):
-                return True, state.board[0][i]
-        
-        if all(state.board[i][i] == Player.PLAYER_1 or state.board[i][i] == Player.PLAYER_2 for i in range(3)):
-            return True, state.board[0][0]
-        if all(state.board[i][2-i] == Player.PLAYER_1 or state.board[i][2-i] == Player.PLAYER_2 for i in range(3)):
-            return True, state.board[0][2]
-        
         return True, Player.NO_PLAYER
     
+    def is_final_state(state):
+        return Validator.check_final_state(state)[0]
+
     def is_valid_move(state, move):
         for i in range(3):
             for j in range(3):
@@ -127,10 +144,14 @@ class Heuristic:
 game_state = GameState()
 game_state.board = np.array([
     ['A', None, 'B'],
-    [None, None, 'B'],
-    ['A', None, None]
+    ['B', 'A', 'A'],
+    ['A', 'B', 'B']
 ])
+game_state.player_to_move = Player.PLAYER_1
 
 # Calculate the heuristic score
 heuristic_score = Heuristic.get_score(game_state)
 print(f"Heuristic score: {heuristic_score}")
+
+score, move = GameState.minmax(game_state, -1, 0, 4)
+print(score, move)
