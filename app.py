@@ -31,7 +31,7 @@ class GameState:
         return next_state
 
     def minmax(state, move, depth, max_depth):
-        print(f"depth: {depth}, {np.ndarray.tolist(state.board)}, {state.player_to_move}")
+        #print(f"depth: {depth}, {np.ndarray.tolist(state.board)}, {state.player_to_move}")
         if Validator.is_final_state(state) or depth == max_depth:
             return Heuristic.get_score(state), move
         
@@ -39,7 +39,7 @@ class GameState:
         for next_move in range(1, 10):
             if Validator.is_valid_move(state, next_move):
                 next_state = state.get_next_state(next_move)
-                next.append(GameState.minmax(next_state, next_move, depth + 1, max_depth))
+                next.append(( GameState.minmax(next_state, next_move, depth + 1, max_depth)[0], next_move ))
 
         f = lambda list: min(next, key=lambda x: x[0])
         if state.player_to_move == Player.PLAYER_1:
@@ -80,6 +80,9 @@ class Validator:
         return Validator.check_final_state(state)[0]
 
     def is_valid_move(state, move):
+        if type(move) != int:
+            return False 
+        
         for i in range(3):
             for j in range(3):
                 if GameState.magic_square[i][j] == move:
@@ -129,18 +132,38 @@ class Heuristic:
         else:
             return 0
 
-# Create a GameState object with a custom board configuration
-game_state = GameState()
-game_state.board = np.array([
-    ['A', 'B', 'B'],
-    ['B', 'A', 'A'],
-    ['A', 'B', None]
-])
-game_state.player_to_move = Player.PLAYER_1
+class Scrabble:
+    def __init__(self, human_player):
+        self.state = GameState()
+        self.human_player = human_player
+        self.ai_player = GameState.get_next_player(human_player)
 
-# Calculate the heuristic score
-heuristic_score = Heuristic.get_score(game_state)
-print(f"Heuristic score: {heuristic_score}")
+    def print_result(self, state):  
+        winner = Validator.check_final_state(state)[1]
+        if winner == Player.PLAYER_1:
+            print("Player A won!")
+        elif winner == Player.PLAYER_2:
+            print("Player B won!")
+        else:
+            print("Draw!")
 
-score, move = GameState.minmax(game_state, -1, 0, 4)
-print(score, move)
+    def play(self):
+        while True:
+            if Validator.is_final_state(self.state):
+                self.print_result(self.state)
+                break
+
+            move = None
+            if self.state.player_to_move == self.human_player:
+                move = int(input("Your turn: "))
+            else:
+                score, move = GameState.minmax(self.state, -1, 0, 4)
+
+            if not Validator.is_valid_move(self.state, move):
+                print("Invalid move!")
+                continue
+            print(f"Player {self.state.player_to_move} moved: {move}")
+            self.state = self.state.get_next_state(move)
+
+game = Scrabble(Player.PLAYER_1)
+game.play()
