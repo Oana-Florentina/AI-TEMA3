@@ -88,29 +88,20 @@ class Validator:
         return True
 
 class Heuristic:
-    @staticmethod
     def get_score(state):
-        # Define the scoring values
         SCORES = {
             '3-in-a-line': 100,
             '2-in-a-line': 10,
             '1-in-a-line': 1,
         }
-
-        # Initialize the total score
         total_score = 0
-
-        # Check each of the 8 lines (3 rows, 3 columns, and 2 diagonals)
         for i in range(3):
-            # Check rows
             row = state.board[i, :]
             total_score += Heuristic.evaluate_line(row, SCORES)
 
-            # Check columns
             col = state.board[:, i]
             total_score += Heuristic.evaluate_line(col, SCORES)
 
-        # Check diagonals
         diagonal1 = np.diagonal(state.board)
         diagonal2 = np.diagonal(np.fliplr(state.board))
         total_score += Heuristic.evaluate_line(diagonal1, SCORES)
@@ -118,9 +109,7 @@ class Heuristic:
 
         return total_score
 
-    @staticmethod
     def evaluate_line(line, scores):
-        # Evaluate a single line
         num_player = line.tolist().count(Player.PLAYER_1) #player 1
         num_empty = line.tolist().count(None)
         num_opponent = 3 - num_player - num_empty #player 2
@@ -143,9 +132,9 @@ class Heuristic:
 # Create a GameState object with a custom board configuration
 game_state = GameState()
 game_state.board = np.array([
-    ['A', None, 'B'],
+    ['A', 'B', 'B'],
     ['B', 'A', 'A'],
-    ['A', 'B', 'B']
+    ['A', 'B', None]
 ])
 game_state.player_to_move = Player.PLAYER_1
 
